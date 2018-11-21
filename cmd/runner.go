@@ -27,6 +27,7 @@ import (
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 	"github.com/termie/go-shutil"
+	"github.com/wercker/pkg/log"
 	"github.com/wercker/wercker/core"
 	"github.com/wercker/wercker/docker"
 	"github.com/wercker/wercker/event"
@@ -470,6 +471,7 @@ func (p *Runner) StartBuild(options *core.PipelineOptions) *util.Finisher {
 	return util.NewFinisher(func(result interface{}) {
 		//Deprovision any Remote Docker Daemon configured for this build
 		if p.rdd != nil {
+			log.Warn("Deprovision: A")
 			p.rdd.Deprovision()
 		}
 		r, ok := result.(*core.BuildFinishedArgs)
@@ -486,6 +488,7 @@ func (p *Runner) StartFullPipeline(options *core.PipelineOptions) *util.Finisher
 	return util.NewFinisher(func(result interface{}) {
 		//Deprovision any Remote Docker Daemon configured for this build
 		if p.rdd != nil {
+			log.Warn("Deprovision: B")
 			p.rdd.Deprovision()
 		}
 		r, ok := result.(*core.FullPipelineFinishedArgs)
@@ -595,6 +598,7 @@ func (p *Runner) SetupEnvironment(runnerCtx context.Context) (*RunnerShared, err
 			rddCleanupHandler := &util.SignalHandler{
 				ID: "rdd-cleanup",
 				F: func() bool {
+					log.Warn("Deprovision: C")
 					rddImpl.Deprovision()
 					return true
 				},
@@ -604,12 +608,14 @@ func (p *Runner) SetupEnvironment(runnerCtx context.Context) (*RunnerShared, err
 
 			rddURI, err = rddImpl.Provision(runnerCtx)
 			if err != nil {
+				log.Warn("Deprovision: D")
 				rddImpl.Deprovision()
 				sr.Message = err.Error()
 				return shared, errors.Wrapf(err, "error provisioning rdd for %s",
 					p.dockerOptions.RddServiceURI)
 			}
 			if rddURI == "" {
+				log.Warn("Deprovision: E")
 				rddImpl.Deprovision()
 				err = fmt.Errorf("Unable to provision RDD for runID %s ", p.options.RunID)
 				sr.Message = err.Error()
@@ -733,6 +739,7 @@ func (p *Runner) SetupEnvironment(runnerCtx context.Context) (*RunnerShared, err
 		F: func() bool {
 			p.logger.Errorln("Interrupt detected, cleaning up containers and shutting down")
 			if p.rdd != nil {
+				log.Warn("Deprovision: F")
 				p.rdd.Deprovision()
 			}
 			box.Stop()

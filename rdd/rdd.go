@@ -156,6 +156,7 @@ func (rdd *RDD) Provision(ctx context.Context) (string, error) {
 
 //Deprovision - Deprovisions a RDD previously provisioned for a build
 func (rdd *RDD) Deprovision() {
+	log.Warn("Deprovision: G")
 	if rdd.rddDeprovRequested {
 		log.Warnf("RDD Deprovisioning already requested for runID: %s", rdd.runID)
 		return
