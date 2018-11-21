@@ -1101,7 +1101,10 @@ func executePipeline(cmdCtx context.Context, options *core.PipelineOptions, dock
 
 	buildFinisher := r.StartBuild(options)
 	buildFinishedArgs := &core.BuildFinishedArgs{Box: nil, Result: "failed"}
-	defer buildFinisher.Finish(buildFinishedArgs)
+	defer func() {
+		logger.Println(f.Info("buildFinisher.Finish", options.Pipeline))
+		buildFinisher.Finish(buildFinishedArgs)
+	}()
 
 	// Debug information
 	DumpOptions(options)
